@@ -1,0 +1,27 @@
+## Conversation
+
+The user asked to verify docs/features/speculative_decoding/suffix.md because they suspected the documented default was wrong and the implementation default was 24. Inspection showed the page actually said 32 (not 36), while vllm/config/speculative.py defines suffix_decoding_max_tree_depth as 24 and assigns that value to num_speculative_tokens when omitted. The user then asked for a fork branch named abatilo/fix-suffix-docs, a minimal commit in Mitchell Hashimoto style, and an upstream pull request. The intended change is strictly to correct the stale default value in the suffix decoding tip.
+
+## Actions
+
+Read docs/features/speculative_decoding/suffix.md and searched the repository for related defaults. Inspected vllm/config/speculative.py lines 187 and 999-1005, confirming suffix_decoding_max_tree_depth defaults to 24 and omitted num_speculative_tokens inherits it. Read docs/features/speculative_decoding/README.md, which also documents 24. Ran git blame and git log --show-notes for the documentation and implementation; the stale 32 wording came from commit 64ac1395e8, while the 24 implementation came from 2c19d96777. Neither commit had a git note. Verified GitHub authentication as abatilo and confirmed abatilo/vllm is a fork of vllm-project/vllm. Searched open upstream pull requests using suffix decoding documentation and default-value keywords. Inspected PR #37383 because it broadly documents speculative configuration; it changes only docs/features/speculative_decoding/README.md and does not correct suffix.md. Inspected recent Mitchell Hashimoto commits and followed the concise lowercase subsystem-prefix subject style. Created branch abatilo/fix-suffix-docs from current upstream main. Changed only docs/features/speculative_decoding/suffix.md line 13 from 32 (default) to 24 (default). Ran git diff --check, reviewed the complete diff, and searched the implementation again to validate the corrected value. Staged only that file and committed it as docs: correct suffix decoding default with Codex co-author and Aaron Batilo sign-off trailers.
+
+## Errors & Mistakes
+
+The initial user recollection was that the page said 36, but direct inspection showed it said 32. No implementation or command errors occurred. An early broad rg search included the generated Swagger UI bundle and produced heavily truncated noisy output; subsequent searches were restricted to the exact configuration symbols and relevant files.
+
+## Dead Ends
+
+No code change or test was needed because this is a documentation-only mismatch. PR #37383 initially looked like potential duplicate work because it adds comprehensive speculative configuration documentation, but inspection showed it does not touch suffix.md and therefore does not fix this stale sentence. No issue number was provided, so issue-specific duplicate commands could not be run; keyword-based open PR searches were used instead.
+
+## Hints for Future Agents
+
+Keep the explicit example value of num_speculative_tokens at 32 unchanged unless there is a separate reason to alter the recommendation or example. The defect fixed here is only the parenthetical claim that 32 is the default. For suffix decoding, num_speculative_tokens is a maximum and is set from suffix_decoding_max_tree_depth only when omitted. The authoritative default is currently vllm/config/speculative.py:187, with inheritance logic around lines 999-1005. Repository instructions require a verbose git note on every commit and require pushing refs/notes/commits alongside branches.
+
+## Codebase Discoveries
+
+Suffix decoding dynamically selects its actual speculative token count. num_speculative_tokens acts as its maximum. When absent, SpeculativeConfig._validate_suffix_decoding assigns suffix_decoding_max_tree_depth, whose dataclass default is 24. docs/features/speculative_decoding/README.md already lists suffix_decoding_max_tree_depth as 24, so suffix.md was internally inconsistent with both the implementation and the main configuration reference.
+
+## Open Questions
+
+None.
